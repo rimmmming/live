@@ -1,66 +1,50 @@
 import React, { Component } from 'react';
-import PropTypes from "prop-types";
-import './App.css';
+//import axios from 'axios';
+import Header from './Header';
+import LivePrice from './LivePrice';
 
-class App extends Component {
+class App extends Component {	
+	state = {
+		title : "Live Cryptocurrency",
+		information : []
+	}
+
+	componentDidMount(){
+		
+		const getPrice = () => {
+			return fetch('https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC,ETH,XRP&tsyms=KRW&&api_key=e04447345e2dc44046b1ffbc38ee236c71605c813b2b77e2ad3aa1c3ce6ae252')
+			.then(potato => potato.json())
+			.then( response => {				
+				this.setState({
+					btcPrice : response.DISPLAY.BTC.KRW.PRICE,
+					ethPrice : response.DISPLAY.ETH.KRW.PRICE,
+					xrpPrice : response.DISPLAY.XRP.KRW.PRICE,
+					btcPCT : response.DISPLAY.BTC.KRW.CHANGEPCT24HOUR,
+					ethPCT : response.DISPLAY.ETH.KRW.CHANGEPCT24HOUR,
+					xrpPCT : response.DISPLAY.XRP.KRW.CHANGEPCT24HOUR,
+				})
+				//console.log(response.DISPLAY.BTC.PRICE)
+
+			})
+		}
+		getPrice();
+		
+	}
+
 	render() {
+		const { title , btcPrice , ethPrice, xrpPrice, btcPCT, ethPCT, xrpPCT} = this.state;
+
 		return (
 			<div className="bx">
-				<header>
-					<h1>Live Cryptocurrency</h1>
-					<p className="countdown">60</p>
-					<button className="btn_reload">
-						<span className="blind">Refresh</span>
-					</button>
-				</header>
-				<article>
-				<table className="type09">
-					<caption>Cryptocurrency Live</caption>
-					<thead>
-						<tr>
-							<th><a href="https://cryptowat.ch/markets/bithumb/btc/krw">BTC/KRW</a></th>
-							<th><a href="https://cryptowat.ch/markets/bithumb/eth/krw">ETH/KRW</a></th>
-							<th><a href="https://cryptowat.ch/markets/bithumb/xrp/krw">XRP/KRW</a></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td className="active">
-								<a href="https://cryptowat.ch/markets/bithumb/btc/krw">
-									<div>₩ 153,893</div>
-								</a>
-							</td>
-							<td className="active">
-								<a href="https://cryptowat.ch/markets/bithumb/eth/krw">
-									<div>₩ 153,893</div>
-								</a>
-							</td>
-							<td className="active">
-								<a href="https://cryptowat.ch/markets/bithumb/xrp/krw">
-									<div>₩ 351</div>
-								</a>
-							</td>
-						</tr>
-						<tr>
-							<td className="active">
-								<a href="https://cryptowat.ch/markets/bithumb/btc/krw">
-									<div>0.25 %</div>
-								</a>
-							</td>
-							<td className="active">
-								<a href="https://cryptowat.ch/markets/bithumb/eth/krw">
-									<div>-3.35 %</div>
-								</a>
-							</td>
-							<td className="active">
-								<a href="https://cryptowat.ch/markets/bithumb/xrp/krw">
-									<div>-0.26 %</div>
-								</a>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				</article>
+				<Header title={title} />
+				<LivePrice 
+					btcPrice={btcPrice} 
+					ethPrice={ethPrice} 
+					xrpPrice={xrpPrice}
+					btcPCT={btcPCT} 
+					ethPCT={ethPCT} 
+					xrpPCT={xrpPCT}
+				/>
 			</div>
 		);
 	}
