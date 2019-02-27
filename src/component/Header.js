@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 
 class Header extends Component {
 	render() {
-		const { title } = this.props;
+		const { title, countDown } = this.props;
 		return (
 			<header>
 				<h1>{title}</h1>
-				<p className="countdown">60</p>
+				<p className="countdown">{countDown}</p>
 				<button type="button" className="btn_reload">
 					<span className="blind">Refresh</span>
 				</button>
