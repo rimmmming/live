@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import Header from './component/Header';
 import LivePrice from './component/LivePrice';
+import NewsList from './component/newsList';
+import LoadingOverlay from 'react-loading-overlay';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component {
     constructor(props){
         super(props);
-        this.onClick = this._pageReload.bind(this);
+        this.reloadFunc = this._pageReload.bind(this);
         this.state = {
             title : "Live Cryptocurrency",
 			url : [
@@ -16,12 +20,14 @@ class App extends Component {
             btcPrice : '0',
             ethPrice : '0',
             xrpPrice : '0',
-            btcPCT : '0%',
-            ethPCT : '0%',
-            xrpPCT : '0%',
+            btcPCT : '0',
+            ethPCT : '0',
+            xrpPCT : '0',
             isActive : false,
-            countDown : 60,
-            
+			countDown : 60,
+			newsDate : null,
+			newsCount : 5,
+			loadingActive : true,
         }
     }
 
@@ -44,7 +50,7 @@ class App extends Component {
             //console.log(this.state.countDown)
         }, 1000)
     }
-    
+
     _getPrice = () => {
         return fetch('https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC,ETH,XRP&tsyms=KRW&&api_key=e04447345e2dc44046b1ffbc38ee236c71605c813b2b77e2ad3aa1c3ce6ae252')
         .then(potato => potato.json())
@@ -59,15 +65,61 @@ class App extends Component {
                 isActive : true,
             })
         })
+	}
+	_makeNewsList = () => {
+        const newsFeeds = this.state.newsFeeds.map(newsFeed => {
+			return <NewsList 
+			date={newsFeed.published_on}
+            title={newsFeed.title}
+            href={newsFeed.url}
+            img={newsFeed.imageurl}
+            newsContent={newsFeed.body}
+            />
+		})
+        return newsFeeds
+    }
+    _getNews = async () => {
+        let newsFeeds = await this._callApi();
+        newsFeeds = newsFeeds.slice(0, this.state.newsCount);
+        console.log(newsFeeds); 
+        this.setState({
+			newsFeeds
+        })
     }
 
+    _callApi = () => {
+        return fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN')
+        .then(strawberry => strawberry.json())
+        .then(json => json.Data)
+        .catch(err => console.log(err))
+    }
+    
+    _moreNews = () => {
+		this._getNews();
+        this.setState({
+			newsCount : this.state.newsCount + 5,
+			newsFeeds : this.state.newsFeeds.concat(this.state.newsFeeds),
+		})
+		toast('Update!!', {
+			autoClose: 2000,
+		});
+	}
+	
+	componentWillMount(){
+		this._getPrice();
+		this._getNews();   
+	}
+
     componentDidMount(){
-        this._getPrice();
-        this._countDownStart();
+		this._countDownStart();
+		this.setState({
+			loadingActive : false
+		})
     }
 
     render() {
-        const { title, url, countDown, btcPrice , ethPrice, xrpPrice, btcPCT, ethPCT, xrpPCT, isActive} = this.state;
+		const { title, url, countDown, btcPrice , ethPrice, xrpPrice, btcPCT, ethPCT, xrpPCT, isActive, newsFeeds, newsCount, loadingActive} = this.state;
+		const {_moreNews} = this;
 
         return (
             <div className="bx">
@@ -88,22 +140,18 @@ class App extends Component {
                         <button type="button">EN &gt; KR</button>
                     </div>
                     <ul>
-                        <li>
-                            <a href="https://www.ccn.com/bahrain-becomes-first-arab-nation-to-comprehensively-regulate-bitcoin">
-                            <div className="bx2"><img src="https://images.cryptocompare.com/news/ccn/cgPx00w08g0.jpeg" width="60" height="60" alt="" /></div>
-                            <dl>
-                                <dt>
-                                    <time dateTime="1551253824000">19/02/27 16:50</time> Bahrain Becomes First Arab Nation to Comprehensively Regulate Bitcoin
-                                </dt>
-                                <dd>
-                                    <p>A couple months ago, CCN reported that Bahrain had completed its draft regulations for cryptocurrencies. The Arab nation has now&nbsp;completed its finalized version of the same, and it hasn’t noted much change in its positive disposition. According to a post on the Central Bank of Bahrain’s website, the country is now a safe place to do business crypto assets. Khalid Hamid, the director of Banking Supervision, says: The CBB’s introduction of the rules relating to crypto-assets is in line with its goal to develop a comprehensive rules for the FinTech eco-system supporting Bahrain’s position as a leading financial hub in The post Bahrain Becomes First Arab Nation to Comprehensively Regulate Bitcoin appeared first on CCN</p>
-                                </dd>
-                            </dl>
-                            </a>
-                        </li>
+                        {newsFeeds ? this._makeNewsList() : '' }
                     </ul>
-                    <button type="button" className="btn_type">More (5/50) </button>
+                    <button type="button" className="btn_type" onClick={() => _moreNews()}>More ({newsCount}/50) </button>
                 </article>
+				<LoadingOverlay
+					active={loadingActive}
+					spinner
+					text='Loading...'
+				/>
+				<ToastContainer
+					autoClose={2000}
+				/>
             </div>
         );
     }
