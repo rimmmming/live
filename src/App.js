@@ -140,7 +140,7 @@ class App extends Component {
                         <button type="button">EN &gt; KR</button>
                     </div>
                     <ul>
-                        {newsFeeds ? this._makeNewsList() : '' }
+                        {newsFeeds ? this._makeNewsList() : loadingActive}
                     </ul>
                     <button type="button" className="btn_type" onClick={() => _moreNews()}>More ({newsCount}/50) </button>
                 </article>
